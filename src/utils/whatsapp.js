@@ -61,5 +61,5 @@ export function buildWhatsAppURL(items, info) {
   }
 
   const message = encodeURIComponent(lines.join('\n'));
-  return `https://wa.me/${phoneNumber}?text=${message}`;
+  return `https://api.whatsapp.com/send?phone=${phoneNumber}&text=${message}`;
 }
