@@ -1697,3 +1697,102 @@ textarea.modal__input {
 .toast.show {
   transform: translateX(-50%) translateY(0);
 }
+
+/* ---------- LOGIN PAGE ---------- */
+.login-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80vh;
+  padding: 20px;
+}
+
+.login-card {
+  background: var(--color-surface);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 400px;
+  padding: 40px 32px;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--color-border-light);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: fadeInUp 0.4s ease;
+}
+
+.login-card__logo {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--color-primary);
+  box-shadow: 0 4px 12px rgba(74, 124, 63, 0.2);
+  margin-bottom: 20px;
+}
+
+.login-card__title {
+  font-size: 1.6rem;
+  color: var(--color-primary-dark);
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.login-card__subtitle {
+  font-size: 0.88rem;
+  color: var(--color-text-secondary);
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.login-card__form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.login-card__group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.login-card__label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.login-card__input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  color: var(--color-text);
+  background: var(--color-bg);
+  transition: border-color var(--transition-fast);
+}
+
+.login-card__input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-bg);
+}
+
+.login-card__btn {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.login-card__error {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: #FEE2E2;
+  color: #991B1B;
+  font-size: 0.82rem;
+  font-weight: 500;
+  text-align: center;
+}
+

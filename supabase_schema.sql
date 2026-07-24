@@ -32,13 +32,9 @@ CREATE POLICY "Lectura pública de productos"
 CREATE POLICY "Admin puede gestionar productos"
   ON productos
   FOR ALL
+  TO authenticated
   USING (true)
   WITH CHECK (true);
-
--- NOTA: La política de admin arriba es permisiva para desarrollo.
--- En producción, reemplazar con:
--- USING (auth.role() = 'authenticated')
--- WITH CHECK (auth.role() = 'authenticated')
 
 -- ============================================
 -- Seed: Insertar productos del CSV

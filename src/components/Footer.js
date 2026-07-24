@@ -1,5 +1,8 @@
 export default function Footer() {
   const currentYear = new Date().getFullYear();
+  const devPhone = process.env.NEXT_PUBLIC_DEVELOPER_WHATSAPP || '543815760508';
+  const devMessage = encodeURIComponent('Hola Martín, vi tu trabajo en la web de El Abuelo Verdulería y me gustaría consultarte por tus servicios de desarrollo web.');
+  const devLink = `https://api.whatsapp.com/send?phone=${devPhone}&text=${devMessage}`;
 
   return (
     <footer className="footer" id="footer">
@@ -36,7 +39,7 @@ export default function Footer() {
           <div className="footer__info-item">
             <span className="footer__info-icon">💬</span>
             <a
-              href="https://wa.me/543815760508"
+              href="https://api.whatsapp.com/send?phone=543815760508"
               target="_blank"
               rel="noopener noreferrer"
               style={{ color: 'var(--color-whatsapp)' }}
@@ -60,8 +63,27 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="footer__bottom">
-        © {currentYear} El Abuelo Verdulería — Rosario de Lerma, Salta. Todos los derechos reservados.
+      <div className="footer__bottom" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '8px 12px' }}>
+        <span>© {currentYear} El Abuelo Verdulería — Rosario de Lerma, Salta. Todos los derechos reservados.</span>
+        <span>|</span>
+        <span>
+          Desarrollado por{' '}
+          <a
+            href={devLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              color: 'var(--color-accent-light)',
+              fontWeight: '700',
+              textDecoration: 'underline',
+              transition: 'color var(--transition-fast)',
+            }}
+            onMouseOver={(e) => (e.target.style.color = '#ffffff')}
+            onMouseOut={(e) => (e.target.style.color = 'var(--color-accent-light)')}
+          >
+            Martín Castillo
+          </a>
+        </span>
       </div>
     </footer>
   );

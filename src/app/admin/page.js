@@ -16,6 +16,15 @@ const EMPTY_PRODUCT = {
 };
 
 export default function AdminPage() {
+  // Auth states
+  const [session, setSession] = useState(null);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
+  const [loggingIn, setLoggingIn] = useState(false);
+
+  // CRUD states
   const [products, setProducts] = useState([]);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(EMPTY_PRODUCT);
@@ -25,13 +34,88 @@ export default function AdminPage() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    loadProducts();
+    // Auth Session setup
+    if (supabase) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        setSession(session);
+        setCheckingAuth(false);
+      });
+
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        setSession(session);
+      });
+
+      return () => subscription.unsubscribe();
+    } else {
+      // Local fallback auth
+      const mockSession = localStorage.getItem('elabueloadmin_mock_session');
+      if (mockSession) {
+        setSession({ user: { email: 'marcelobolivar@elabueloverduleria.com' } });
+      }
+      setCheckingAuth(false);
+    }
   }, []);
+
+  useEffect(() => {
+    if (session) {
+      loadProducts();
+    }
+  }, [session]);
+
+  async function handleLogin(e) {
+    e.preventDefault();
+    setLoginError('');
+    setLoggingIn(true);
+
+    let email = username.trim();
+    if (email && !email.includes('@')) {
+      email = `${email}@elabueloverduleria.com`;
+    }
+
+    if (supabase) {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        setLoginError(
+          error.message === 'Invalid login credentials'
+            ? 'Usuario o contraseña incorrectos.'
+            : error.message
+        );
+      } else {
+        setSession(data.session);
+      }
+    } else {
+      // Offline fallback login for client presentation
+      if (
+        (username.trim() === 'marcelobolivar' || username.trim() === 'marcelobolivar@elabueloverduleria.com') &&
+        password === 'elabuelo2026-'
+      ) {
+        const mockSess = { user: { email: 'marcelobolivar@elabueloverduleria.com' } };
+        setSession(mockSess);
+        localStorage.setItem('elabueloadmin_mock_session', 'true');
+      } else {
+        setLoginError('Usuario o contraseña incorrectos.');
+      }
+    }
+    setLoggingIn(false);
+  }
+
+  async function handleLogout() {
+    if (supabase) {
+      await supabase.auth.signOut();
+    } else {
+      localStorage.removeItem('elabueloadmin_mock_session');
+      setSession(null);
+    }
+  }
 
   async function loadProducts() {
     setLoading(true);
     if (!supabase) {
-      setMessage('⚠️ Supabase no está configurado. Configurá las variables de entorno en .env.local');
+      setProducts([]);
       setLoading(false);
       return;
     }
@@ -152,17 +236,107 @@ export default function AdminPage() {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
+  if (checkingAuth) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '80vh', flexDirection: 'column', gap: '16px' }}>
+        <div className="skeleton" style={{ width: '60px', height: '60px', borderRadius: '50%' }} />
+        <p style={{ color: 'var(--color-text-secondary)', fontWeight: 500 }}>Verificando credenciales...</p>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return (
+      <div className="login-wrapper">
+        <div className="login-card">
+          <img
+            src="/img/logo.jpeg"
+            alt="El Abuelo Verdulería"
+            className="login-card__logo"
+          />
+          <h1 className="login-card__title">Panel de Control</h1>
+          <p className="login-card__subtitle">El Abuelo Verdulería & Almacén</p>
+
+          <form className="login-card__form" onSubmit={handleLogin}>
+            {loginError && (
+              <div className="login-card__error">
+                {loginError}
+              </div>
+            )}
+            <div className="login-card__group">
+              <label className="login-card__label" htmlFor="username">Usuario</label>
+              <input
+                id="username"
+                type="text"
+                className="login-card__input"
+                placeholder="Ej: marcelobolivar"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+              />
+            </div>
+            <div className="login-card__group">
+              <label className="login-card__label" htmlFor="password">Contraseña</label>
+              <input
+                id="password"
+                type="password"
+                className="login-card__input"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            <button
+              type="submit"
+              className="btn btn--primary login-card__btn"
+              disabled={loggingIn}
+            >
+              {loggingIn ? 'Iniciando sesión...' : 'Ingresar'}
+            </button>
+            <a href="/" style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', textAlign: 'center', marginTop: '10px' }}>
+              ← Volver a la tienda
+            </a>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="admin container" id="admin-page">
       <div className="admin__header">
-        <h1 className="admin__title">🛠 Panel de Administración</h1>
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+        <div>
+          <h1 className="admin__title">🛠 Panel de Administración</h1>
+          <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
+            Sesión iniciada como: <strong>{session.user.email}</strong>
+          </p>
+        </div>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
           <a href="/" className="btn btn--outline btn--sm">← Volver a la tienda</a>
           <button className="btn btn--primary btn--sm" onClick={handleNew} id="btn-new-product">
             + Nuevo Producto
           </button>
+          <button className="btn btn--outline btn--sm" onClick={handleLogout} style={{ borderColor: 'var(--color-danger)', color: 'var(--color-danger)' }}>
+            Cerrar sesión
+          </button>
         </div>
       </div>
+
+      {!supabase && (
+        <div style={{
+          padding: '12px 20px',
+          borderRadius: '8px',
+          background: '#FFFBEB',
+          color: '#B45309',
+          border: '1px solid #FDE68A',
+          marginBottom: '20px',
+          fontWeight: 500,
+          fontSize: '0.9rem',
+        }}>
+          ⚠️ Modo Demostración Local: Supabase no está conectado todavía. Los cambios se guardarán solo temporalmente en memoria para mostrarle al cliente.
+        </div>
+      )}
 
       {message && (
         <div style={{
