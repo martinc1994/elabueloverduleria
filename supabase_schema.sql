@@ -74,3 +74,31 @@ VALUES
 
   -- ALMACÉN
   ('Huevos', 1500, NULL, 6, NULL, 'almacen', '/img/huevos.jpg', true, 1);
+
+-- ============================================
+-- Tabla de analíticas de pedidos (Métricas)
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS registro_pedidos (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  modalidad TEXT NOT NULL,
+  total NUMERIC(10,2) NOT NULL,
+  items_count INTEGER NOT NULL
+);
+
+-- Habilitar Row Level Security
+ALTER TABLE registro_pedidos ENABLE ROW LEVEL SECURITY;
+
+-- Política: Clientes pueden insertar métricas al confirmar pedido
+CREATE POLICY "Permitir insertar pedidos públicamente" 
+  ON registro_pedidos
+  FOR INSERT
+  WITH CHECK (true);
+
+-- Política: Solo administradores logueados pueden ver las métricas
+CREATE POLICY "Permitir leer pedidos a admins" 
+  ON registro_pedidos
+  FOR SELECT
+  TO authenticated
+  USING (true);

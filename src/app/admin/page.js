@@ -64,6 +64,9 @@ export default function AdminPage() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
 
+  // Stats state
+  const [stats, setStats] = useState({ totalOrders: 0, totalRevenue: 0 });
+
   useEffect(() => {
     // Auth Session setup
     if (supabase) {
@@ -90,6 +93,7 @@ export default function AdminPage() {
   useEffect(() => {
     if (session) {
       loadProducts();
+      loadStats();
     }
   }, [session]);
 
@@ -171,6 +175,27 @@ export default function AdminPage() {
       setProducts(data || []);
     }
     setLoading(false);
+  }
+
+  async function loadStats() {
+    if (!supabase) {
+      // Local fallback stats from localStorage
+      const mockOrders = JSON.parse(localStorage.getItem('elabueloadmin_mock_orders') || '[]');
+      const totalRev = mockOrders.reduce((sum, o) => sum + Number(o.total), 0);
+      setStats({ totalOrders: mockOrders.length, totalRevenue: totalRev });
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from('registro_pedidos')
+      .select('total');
+
+    if (error) {
+      console.error('Error fetching stats:', error.message);
+    } else if (data) {
+      const totalRev = data.reduce((sum, o) => sum + Number(o.total), 0);
+      setStats({ totalOrders: data.length, totalRevenue: totalRev });
+    }
   }
 
   function handleNew() {
@@ -286,6 +311,7 @@ export default function AdminPage() {
         setImageFile(null);
         setImagePreview('');
         await loadProducts();
+        await loadStats();
       }
     } else {
       // Mock LocalStorage save
@@ -318,6 +344,7 @@ export default function AdminPage() {
       setForm(EMPTY_PRODUCT);
       setImageFile(null);
       setImagePreview('');
+      loadStats();
     }
 
     setSaving(false);
@@ -338,6 +365,7 @@ export default function AdminPage() {
       } else {
         setMessage('🗑 Producto eliminado');
         await loadProducts();
+        await loadStats();
       }
     } else {
       // Mock LocalStorage delete
@@ -346,6 +374,7 @@ export default function AdminPage() {
       localStorage.setItem('elabueloadmin_mock_products', JSON.stringify(currentMock));
       setProducts(currentMock);
       setMessage('🗑 Producto eliminado (Local)');
+      loadStats();
     }
     setTimeout(() => setMessage(''), 3000);
   }
@@ -478,6 +507,66 @@ export default function AdminPage() {
           ⚠️ Modo Demostración Local: Supabase no está conectado todavía. Los cambios se guardarán solo temporalmente en memoria para mostrarle al cliente.
         </div>
       )}
+
+      {/* Stats Summary Cards */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        gap: '16px',
+        marginBottom: '24px',
+      }}>
+        <div style={{
+          background: 'var(--color-surface)',
+          padding: '20px',
+          borderRadius: '16px',
+          border: '1px solid var(--color-border-light)',
+          boxShadow: 'var(--shadow-sm)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '4px',
+        }}>
+          <span style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            🛒 Pedidos Concretados (WhatsApp)
+          </span>
+          <span style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--color-primary-dark)' }}>
+            {stats.totalOrders}
+          </span>
+        </div>
+        <div style={{
+          background: 'var(--color-surface)',
+          padding: '20px',
+          borderRadius: '16px',
+          border: '1px solid var(--color-border-light)',
+          boxShadow: 'var(--shadow-sm)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '4px',
+        }}>
+          <span style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            💰 Facturación Estimada
+          </span>
+          <span style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--color-accent-dark)' }}>
+            ${stats.totalRevenue.toLocaleString('es-AR')}
+          </span>
+        </div>
+        <div style={{
+          background: 'var(--color-surface)',
+          padding: '20px',
+          borderRadius: '16px',
+          border: '1px solid var(--color-border-light)',
+          boxShadow: 'var(--shadow-sm)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '4px',
+        }}>
+          <span style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            📊 Ticket Promedio
+          </span>
+          <span style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--color-primary)' }}>
+            ${stats.totalOrders > 0 ? Math.round(stats.totalRevenue / stats.totalOrders).toLocaleString('es-AR') : '0'}
+          </span>
+        </div>
+      </div>
 
       {message && (
         <div style={{

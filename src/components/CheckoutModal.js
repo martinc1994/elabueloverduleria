@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useCart } from '../context/CartContext';
 import { buildWhatsAppURL } from '../utils/whatsapp';
 import { track } from '@vercel/analytics';
+import { supabase } from '../lib/supabase';
 
 export default function CheckoutModal({ isOpen, onClose }) {
   const { items, total, clearCart } = useCart();
@@ -32,6 +33,31 @@ export default function CheckoutModal({ isOpen, onClose }) {
       });
     } catch (e) {
       console.error('Analytics error:', e);
+    }
+
+    // Log the order to Supabase database for free tracking
+    if (supabase) {
+      supabase
+        .from('registro_pedidos')
+        .insert({
+          modalidad,
+          total: Number(total),
+          items_count: items.length,
+        })
+        .then(({ error }) => {
+          if (error) console.error('Error logging order:', error);
+        });
+    } else {
+      // Save local mock order for admin stats preview
+      const mockOrders = JSON.parse(localStorage.getItem('elabueloadmin_mock_orders') || '[]');
+      mockOrders.push({
+        id: Date.now(),
+        modalidad,
+        total: Number(total),
+        items_count: items.length,
+        created_at: new Date().toISOString()
+      });
+      localStorage.setItem('elabueloadmin_mock_orders', JSON.stringify(mockOrders));
     }
 
     // Open WhatsApp in a new tab
