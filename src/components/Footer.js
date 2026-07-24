@@ -1,6 +1,6 @@
 export default function Footer() {
   const currentYear = new Date().getFullYear();
-  const devPhone = process.env.NEXT_PUBLIC_DEVELOPER_WHATSAPP || '543815760508';
+  const devPhone = process.env.NEXT_PUBLIC_DEVELOPER_WHATSAPP || '543816232650';
   const devMessage = encodeURIComponent('Hola Martín, vi tu trabajo en la web de El Abuelo Verdulería y me gustaría consultarte por tus servicios de desarrollo web.');
   const devLink = `https://api.whatsapp.com/send?phone=${devPhone}&text=${devMessage}`;
 
@@ -64,7 +64,7 @@ export default function Footer() {
       </div>
 
       <div className="footer__bottom" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '8px 12px' }}>
-        <span>© {currentYear} El Abuelo Verdulería — Rosario de Lerma, Salta. Todos los derechos reservados.</span>
+        <span>© {currentYear} El Abuelo Verdulería — Rosario de Lerma, Salta.</span>
         <span>|</span>
         <span>
           Desarrollado por{' '}

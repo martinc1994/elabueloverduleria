@@ -15,6 +15,32 @@ const EMPTY_PRODUCT = {
   orden: 0,
 };
 
+const FALLBACK_PRODUCTS = [
+  { id: '1', nombre: 'Papa', precio: 1400, peso_kg: 1, cantidad: null, observacion: '', categoria: 'verduras', imagen_url: '/img/papa.webp', activo: true },
+  { id: '2', nombre: 'Zanahoria', precio: 850, peso_kg: 0.5, cantidad: null, observacion: '', categoria: 'verduras', imagen_url: '/img/zanahoria.jpg', activo: true },
+  { id: '3', nombre: 'Cebolla', precio: 1200, peso_kg: 1, cantidad: null, observacion: '', categoria: 'verduras', imagen_url: '/img/cebolla.webp', activo: true },
+  { id: '4', nombre: 'Zapallo', precio: 1200, peso_kg: 1, cantidad: null, observacion: '', categoria: 'verduras', imagen_url: '/img/zapallo.jpg', activo: true },
+  { id: '5', nombre: 'Mandarinas', precio: 1000, peso_kg: null, cantidad: 5, observacion: '', categoria: 'frutas', imagen_url: '/img/mandarina.jpg', activo: true },
+  { id: '6', nombre: 'Naranjas', precio: 1000, peso_kg: null, cantidad: 5, observacion: '', categoria: 'frutas', imagen_url: '/img/naranja.jpg', activo: true },
+  { id: '7', nombre: 'Limón', precio: 500, peso_kg: null, cantidad: 6, observacion: '', categoria: 'frutas', imagen_url: '/img/lemon.webp', activo: true },
+  { id: '8', nombre: 'Morrón Verde', precio: 1500, peso_kg: 0.5, cantidad: null, observacion: '', categoria: 'verduras', imagen_url: '/img/morronverde.webp', activo: true },
+  { id: '9', nombre: 'Morrón Rojo', precio: 2000, peso_kg: 0.5, cantidad: null, observacion: '', categoria: 'verduras', imagen_url: '/img/pimientorojo.webp', activo: true },
+  { id: '10', nombre: 'Banana', precio: 1000, peso_kg: null, cantidad: 4, observacion: '', categoria: 'frutas', imagen_url: '/img/banana.webp', activo: true },
+  { id: '11', nombre: 'Bandeja de Sopa', precio: 1800, peso_kg: 1, cantidad: null, observacion: '', categoria: 'verduras', imagen_url: '/img/sopa.webp', activo: true },
+  { id: '12', nombre: 'Ajo', precio: 800, peso_kg: null, cantidad: 1, observacion: '', categoria: 'verduras', imagen_url: '/img/ajo.webp', activo: true },
+  { id: '13', nombre: 'Laurel', precio: 800, peso_kg: null, cantidad: 1, observacion: 'Bolsita 10g.', categoria: 'verduras', imagen_url: '/img/laurel.jpg', activo: true },
+  { id: '14', nombre: 'Huevos', precio: 1500, peso_kg: null, cantidad: 6, observacion: '', categoria: 'almacen', imagen_url: '/img/huevos.jpg', activo: true },
+  { id: '15', nombre: 'Acelga', precio: 800, peso_kg: null, cantidad: 1, observacion: 'Medio atado', categoria: 'verduras', imagen_url: '/img/acelga.webp', activo: true },
+  { id: '16', nombre: 'Perejil', precio: 300, peso_kg: 0.1, cantidad: null, observacion: '100 g.', categoria: 'verduras', imagen_url: '/img/perejil.webp', activo: true },
+  { id: '17', nombre: 'Apio', precio: 300, peso_kg: 0.1, cantidad: null, observacion: '100 g.', categoria: 'verduras', imagen_url: '/img/apio.jpg', activo: true },
+  { id: '18', nombre: 'Bollo casero con chicharrón', precio: 500, peso_kg: null, cantidad: 1, observacion: '', categoria: 'panaderia', imagen_url: '/img/bollochicharron.jpeg', activo: true },
+  { id: '19', nombre: 'Bollo casero simple', precio: 500, peso_kg: null, cantidad: 1, observacion: '', categoria: 'panaderia', imagen_url: '/img/bollocasero.jpeg', activo: true },
+  { id: '20', nombre: 'Tira de pan', precio: 500, peso_kg: null, cantidad: 1, observacion: '', categoria: 'panaderia', imagen_url: '/img/tiradepan.webp', activo: true },
+  { id: '21', nombre: 'Pastafrola (porción)', precio: 2000, peso_kg: null, cantidad: 1, observacion: '', categoria: 'panaderia', imagen_url: '/img/pastafrola.webp', activo: true },
+  { id: '22', nombre: 'Magdalena', precio: 700, peso_kg: null, cantidad: 1, observacion: '', categoria: 'panaderia', imagen_url: '/img/magdalena.png', activo: true },
+  { id: '23', nombre: 'Combo Familiar', precio: 6000, peso_kg: null, cantidad: 1, observacion: '1kg tomate, 1kg papa, ½kg cebolla, ½kg zapallo, ½kg zanahoria, 1 ajo, 1 morrón verde, perejil y acelga', categoria: 'combos', imagen_url: '/img/combo_verduras.png', activo: true },
+];
+
 export default function AdminPage() {
   // Auth states
   const [session, setSession] = useState(null);
@@ -23,6 +49,11 @@ export default function AdminPage() {
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
   const [loggingIn, setLoggingIn] = useState(false);
+
+  // Image Upload states
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   // CRUD states
   const [products, setProducts] = useState([]);
@@ -115,7 +146,14 @@ export default function AdminPage() {
   async function loadProducts() {
     setLoading(true);
     if (!supabase) {
-      setProducts([]);
+      // Local fallback CRUD loading from localStorage or FALLBACK_PRODUCTS
+      const stored = localStorage.getItem('elabueloadmin_mock_products');
+      if (stored) {
+        setProducts(JSON.parse(stored));
+      } else {
+        setProducts(FALLBACK_PRODUCTS);
+        localStorage.setItem('elabueloadmin_mock_products', JSON.stringify(FALLBACK_PRODUCTS));
+      }
       setLoading(false);
       return;
     }
@@ -138,6 +176,8 @@ export default function AdminPage() {
   function handleNew() {
     setEditing(null);
     setForm(EMPTY_PRODUCT);
+    setImageFile(null);
+    setImagePreview('');
     setShowForm(true);
   }
 
@@ -154,12 +194,61 @@ export default function AdminPage() {
       activo: product.activo,
       orden: product.orden || 0,
     });
+    setImageFile(null);
+    setImagePreview(product.imagen_url || '');
     setShowForm(true);
   }
 
+  function handleFileChange(e) {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      const localUrl = URL.createObjectURL(file);
+      setImagePreview(localUrl);
+    }
+  }
+
   async function handleSave() {
-    if (!supabase) return;
     setSaving(true);
+    let finalImageUrl = form.imagen_url;
+
+    // Handle image file upload
+    if (imageFile) {
+      if (supabase) {
+        try {
+          const fileExt = imageFile.name.split('.').pop();
+          const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+          const filePath = `products/${fileName}`;
+
+          const { error: uploadError } = await supabase.storage
+            .from('productos')
+            .upload(filePath, imageFile);
+
+          if (uploadError) {
+            throw new Error(uploadError.message);
+          }
+
+          const { data: { publicUrl } } = supabase.storage
+            .from('productos')
+            .getPublicUrl(filePath);
+
+          finalImageUrl = publicUrl;
+        } catch (err) {
+          setMessage(`⚠️ Error al subir imagen: ${err.message}`);
+          setSaving(false);
+          setTimeout(() => setMessage(''), 5000);
+          return;
+        }
+      } else {
+        // Local mode: convert to base64 Data URL for temporary storage
+        const reader = new FileReader();
+        const promise = new Promise((resolve) => {
+          reader.onloadend = () => resolve(reader.result);
+        });
+        reader.readAsDataURL(imageFile);
+        finalImageUrl = await promise;
+      }
+    }
 
     const payload = {
       nombre: form.nombre,
@@ -168,67 +257,119 @@ export default function AdminPage() {
       cantidad: form.cantidad ? Number(form.cantidad) : null,
       observacion: form.observacion || null,
       categoria: form.categoria,
-      imagen_url: form.imagen_url || null,
+      imagen_url: finalImageUrl || null,
       activo: form.activo,
       orden: Number(form.orden) || 0,
       updated_at: new Date().toISOString(),
     };
 
-    let error;
-    if (editing) {
-      ({ error } = await supabase
-        .from('productos')
-        .update(payload)
-        .eq('id', editing));
-    } else {
-      ({ error } = await supabase
-        .from('productos')
-        .insert(payload));
-    }
+    if (supabase) {
+      let error;
+      if (editing) {
+        ({ error } = await supabase
+          .from('productos')
+          .update(payload)
+          .eq('id', editing));
+      } else {
+        ({ error } = await supabase
+          .from('productos')
+          .insert(payload));
+      }
 
-    if (error) {
-      setMessage(`Error al guardar: ${error.message}`);
+      if (error) {
+        setMessage(`Error al guardar: ${error.message}`);
+      } else {
+        setMessage(editing ? '✅ Producto actualizado' : '✅ Producto creado');
+        setShowForm(false);
+        setEditing(null);
+        setForm(EMPTY_PRODUCT);
+        setImageFile(null);
+        setImagePreview('');
+        await loadProducts();
+      }
     } else {
-      setMessage(editing ? '✅ Producto actualizado' : '✅ Producto creado');
+      // Mock LocalStorage save
+      let currentMock = [];
+      const stored = localStorage.getItem('elabueloadmin_mock_products');
+      if (stored) {
+        currentMock = JSON.parse(stored);
+      } else {
+        currentMock = FALLBACK_PRODUCTS;
+      }
+
+      if (editing) {
+        currentMock = currentMock.map((p) =>
+          p.id === editing ? { ...p, ...payload } : p
+        );
+        setMessage('✅ Producto actualizado (Local)');
+      } else {
+        const newProduct = {
+          id: `${Date.now()}`,
+          ...payload,
+        };
+        currentMock.unshift(newProduct);
+        setMessage('✅ Producto creado (Local)');
+      }
+
+      localStorage.setItem('elabueloadmin_mock_products', JSON.stringify(currentMock));
+      setProducts(currentMock);
       setShowForm(false);
       setEditing(null);
       setForm(EMPTY_PRODUCT);
-      await loadProducts();
+      setImageFile(null);
+      setImagePreview('');
     }
+
     setSaving(false);
     setTimeout(() => setMessage(''), 3000);
   }
 
   async function handleDelete(id) {
-    if (!supabase) return;
     if (!confirm('¿Estás seguro de eliminar este producto?')) return;
 
-    const { error } = await supabase
-      .from('productos')
-      .delete()
-      .eq('id', id);
+    if (supabase) {
+      const { error } = await supabase
+        .from('productos')
+        .delete()
+        .eq('id', id);
 
-    if (error) {
-      setMessage(`Error al eliminar: ${error.message}`);
+      if (error) {
+        setMessage(`Error al eliminar: ${error.message}`);
+      } else {
+        setMessage('🗑 Producto eliminado');
+        await loadProducts();
+      }
     } else {
-      setMessage('🗑 Producto eliminado');
-      await loadProducts();
+      // Mock LocalStorage delete
+      let currentMock = JSON.parse(localStorage.getItem('elabueloadmin_mock_products') || '[]');
+      currentMock = currentMock.filter((p) => p.id !== id);
+      localStorage.setItem('elabueloadmin_mock_products', JSON.stringify(currentMock));
+      setProducts(currentMock);
+      setMessage('🗑 Producto eliminado (Local)');
     }
     setTimeout(() => setMessage(''), 3000);
   }
 
   async function handleToggle(product) {
-    if (!supabase) return;
+    if (supabase) {
+      const { error } = await supabase
+        .from('productos')
+        .update({ activo: !product.activo, updated_at: new Date().toISOString() })
+        .eq('id', product.id);
 
-    const { error } = await supabase
-      .from('productos')
-      .update({ activo: !product.activo, updated_at: new Date().toISOString() })
-      .eq('id', product.id);
-
-    if (error) {
-      setMessage(`Error: ${error.message}`);
+      if (error) {
+        setMessage(`Error: ${error.message}`);
+      } else {
+        await loadProducts();
+      }
     } else {
-      await loadProducts();
+      // Mock LocalStorage toggle
+      let currentMock = JSON.parse(localStorage.getItem('elabueloadmin_mock_products') || '[]');
+      currentMock = currentMock.map((p) =>
+        p.id === product.id ? { ...p, activo: !p.activo, updated_at: new Date().toISOString() } : p
+      );
+      localStorage.setItem('elabueloadmin_mock_products', JSON.stringify(currentMock));
+      setProducts(currentMock);
     }
   }
 
@@ -421,13 +562,65 @@ export default function AdminPage() {
                   />
                 </div>
                 <div className="admin__form-group admin__form-group--full">
-                  <label className="admin__form-label">URL de Imagen</label>
-                  <input
-                    className="admin__form-input"
-                    value={form.imagen_url}
-                    onChange={(e) => handleFormChange('imagen_url', e.target.value)}
-                    placeholder="Ej: /img/papa.webp"
-                  />
+                  <label className="admin__form-label">Imagen del Producto</label>
+                  
+                  {/* Preview Area */}
+                  {imagePreview && (
+                    <div style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '16px' }}>
+                      <img
+                        src={imagePreview}
+                        alt="Vista previa"
+                        style={{
+                          width: '80px',
+                          height: '80px',
+                          objectFit: 'cover',
+                          borderRadius: '12px',
+                          border: '2px solid var(--color-primary-bg)',
+                          boxShadow: 'var(--shadow-sm)',
+                        }}
+                      />
+                      <button
+                        type="button"
+                        className="btn btn--outline btn--sm"
+                        style={{ borderColor: 'var(--color-danger)', color: 'var(--color-danger)', padding: '6px 12px' }}
+                        onClick={() => {
+                          setImageFile(null);
+                          setImagePreview('');
+                          handleFormChange('imagen_url', '');
+                        }}
+                      >
+                        Quitar Imagen
+                      </button>
+                    </div>
+                  )}
+
+                  {/* File Selector */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      className="admin__form-input"
+                      style={{ padding: '8px' }}
+                    />
+                    
+                    {/* Fallback Text Input */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '4px' }}>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>
+                        O ingresá la URL del archivo de imagen si preferís:
+                      </span>
+                      <input
+                        className="admin__form-input"
+                        value={form.imagen_url}
+                        onChange={(e) => {
+                          handleFormChange('imagen_url', e.target.value);
+                          setImagePreview(e.target.value);
+                          setImageFile(null); // Clear file selection if they use manual URL
+                        }}
+                        placeholder="Ej: /img/papa.webp o https://ejemplo.com/imagen.jpg"
+                      />
+                    </div>
+                  </div>
                 </div>
                 <div className="admin__form-group admin__form-group--full">
                   <label className="admin__form-label">Observación</label>
