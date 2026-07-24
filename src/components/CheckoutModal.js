@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useCart } from '../context/CartContext';
 import { buildWhatsAppURL } from '../utils/whatsapp';
+import { track } from '@vercel/analytics';
 
 export default function CheckoutModal({ isOpen, onClose }) {
   const { items, total, clearCart } = useCart();
@@ -21,6 +22,17 @@ export default function CheckoutModal({ isOpen, onClose }) {
       direccion,
       observaciones,
     });
+
+    // Track the successful order action
+    try {
+      track('Confirmar Pedido WhatsApp', {
+        modalidad,
+        cantidad_productos: items.length,
+        total_pedido: total,
+      });
+    } catch (e) {
+      console.error('Analytics error:', e);
+    }
 
     // Open WhatsApp in a new tab
     window.open(url, '_blank');

@@ -1,5 +1,6 @@
 import './globals.css';
 import { CartProvider } from '../context/CartContext';
+import { Analytics } from '@vercel/analytics/react';
 
 export const metadata = {
   title: 'El Abuelo Verdulería | Frutas, Verduras y más — Rosario de Lerma',
@@ -25,6 +26,7 @@ export default function RootLayout({ children }) {
         <CartProvider>
           {children}
         </CartProvider>
+        <Analytics />
       </body>
     </html>
   );
